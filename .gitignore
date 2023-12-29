@@ -1,2 +1,3 @@
-.py
+dynamo.py
+*.json
 /env
