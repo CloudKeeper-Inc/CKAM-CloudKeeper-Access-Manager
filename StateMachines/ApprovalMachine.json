@@ -1,0 +1,101 @@
+{
+  "Comment": "CloudKeeper Access Manager - Approval State Machine",
+  "StartAt": "Notify Approvers Pending",
+  "States": {
+    "DynamoDB GetStatus": {
+      "Next": "Pending?",
+      "Parameters": {
+        "Key": {
+          "id": {
+            "S.$": "$.id"
+          }
+        },
+        "TableName.$": "$.requests_table"
+      },
+      "Resource": "arn:aws:states:::dynamodb:getItem",
+      "ResultPath": "$.result",
+      "Type": "Task"
+    },
+    "Notify Approvers Pending": {
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "Wait",
+          "ResultPath": "$.error"
+        }
+      ],
+      "Next": "Wait",
+      "Parameters": {
+        "FunctionName.$": "$.fn_teamnotifications_arn",
+        "Payload.$": "$"
+      },
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "ResultPath": "$.lastTaskResult",
+      "Type": "Task"
+    },
+    "Notify Requester Expired": {
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "Pass",
+          "ResultPath": "$.error"
+        }
+      ],
+      "End": true,
+      "Parameters": {
+        "FunctionName.$": "$.fn_teamnotifications_arn",
+        "Payload.$": "$"
+      },
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "ResultPath": "$.lastTaskResult",
+      "Type": "Task"
+    },
+    "Pass": {
+      "End": true,
+      "Type": "Pass"
+    },
+    "Pending?": {
+      "Choices": [
+        {
+          "Variable": "$.result.Item.requestStatus.S",
+          "StringEquals": "pending",
+          "Next": "Update Request Status"
+        }
+      ],
+      "Default": "Pass",
+      "Type": "Choice"
+    },
+    "Update Request Status": {
+      "Next": "Notify Requester Expired",
+      "Parameters": {
+        "FunctionName.$": "$.fn_teamstatus_arn",
+        "Payload.$": "$"
+      },
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "ResultPath": "$.Payload",
+      "Retry": [
+        {
+          "BackoffRate": 2,
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6
+        }
+      ],
+      "Type": "Task"
+    },
+    "Wait": {
+      "Next": "DynamoDB GetStatus",
+      "SecondsPath": "$.expire",
+      "Type": "Wait"
+    }
+  }
+}

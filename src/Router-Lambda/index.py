@@ -5,13 +5,23 @@ import os
 grantStateMachine = os.getenv('GRANTSTATEMACHINEARN')
 approvalStateMachine = os.getenv('APPROVALSTATEMACHINEARN')
 rejectStateMachine = os.getenv('REJECTSTATEMACHINEARN')
+revokeStateMachine = os.getenv('REVOKESTATEMACHINE')
+requestTableName = os.getenv('REQUESTTABLENAME')
+fnNotificationsArn = os.getenv('NOTIFICATIONLAMBDA')
+
+team_config = {
+    "requests_table": requestTableName,
+    "revoke_sm": revokeStateMachine,
+    "grant_sm": grantStateMachine,
+    "fn_teamnotifications_arn": fnNotificationsArn,
+}
 
 def pendingFlow():
     sfnClient = boto3.client('stepfunctions')
 
     try:
         response = sfnClient.start_exectution(
-            stateMachineArn = grantStateMachine,
+            stateMachineArn = approvalStateMachine,
             input = "{}"
         )
     except Exception as e:
@@ -23,7 +33,7 @@ def approvedFlow():
 
     try:
         response = sfnClient.start_exectution(
-            stateMachineArn = approvalStateMachine,
+            stateMachineArn = grantStateMachine,
             input = "{}"
         )
     except Exception as e:
