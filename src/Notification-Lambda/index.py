@@ -65,3 +65,23 @@ def lambda_handler(event, context):
             toAddresses = approvers
             subject = f'CKAM - New Access Request for {permission}'
             messageHtml = f'<html><body><p><b>{requesterEmail}</b> requests access to AWS, please approve or reject this request.</p><p><b>Access:</b> {permission}<br /><b>Duration:</b> {duration}<br /></p></body></html>'
+        case 'approved':
+            toAddresses = [requesterEmail]
+            subject = f'CKAM - Access Request approved for {permission}'
+            messageHtml = f'<html><body><p>Access Approved for {permission}</p><p>Login to SSO Portal to access the account</p></body></html>'
+        case 'rejected':
+            toAddresses = [requesterEmail]
+            subject = f'CKAM - Access Request Rejected for {permission}'
+            messageHtml = f'<html><body><p>Access Request <b>Rejected</b> for {permission}</p><p>Contact Administrators for more Information</body></html>'
+        case 'granted':
+            toAddresses = [requesterEmail]
+            subject = f'CKAM - Access Granted for {permission}'
+            messageHtml = f'<html><body><p>Access Granted for {permission}</p><p><b>Duration: {duration}</b></p></body></html>'
+        case 'completed':
+            toAddresses = [requesterEmail]
+            subject = f'CKAM - Access Duration Complete for {permission}'
+            messageHtml = f'<html><body><p>Access Duration for {permission} Completed </p></body></html>'
+        case _:
+            print(f"Request status unexpected, exiting: {status.lower()}")
+            exit()
+
