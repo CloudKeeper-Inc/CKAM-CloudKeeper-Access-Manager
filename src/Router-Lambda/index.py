@@ -5,8 +5,9 @@ import os
 grantStateMachine = os.getenv('GRANTSTATEMACHINEARN')
 approvalStateMachine = os.getenv('APPROVALSTATEMACHINEARN')
 rejectStateMachine = os.getenv('REJECTSTATEMACHINEARN')
-revokeStateMachine = os.getenv('REVOKESTATEMACHINE')
+revokeStateMachine = os.getenv('REVOKESTATEMACHINEARN')
 requestTableName = os.getenv('REQUESTTABLENAME')
+approverTableName = os.getenv('APPROVERTABLENAME')
 fnNotificationsArn = os.getenv('NOTIFICATIONLAMBDA')
 
 team_config = {
@@ -57,6 +58,7 @@ def extractEvents(event):
     permission = event["permissionType"]
     usrName = event["name"]
     requestStatus = event["requestStatus"]
+    requestId = event["requestId"]
     
     if requestStatus.lower() == "pending":
         pendingFlow()
