@@ -1,0 +1,136 @@
+{
+    "Comment": "CloudKeeper Access Manager - Grant State Machine",
+    "StartAt": "Notify Request",
+    "States": {
+      "Notify Request": {
+        "Next": "Grant Request",
+        "Parameters": {
+          "FunctionName.$": "$.fn_teamnotifications_arn",
+          "Payload.$": "$"
+        },
+        "Catch": [
+          {
+            "Next": "Grant Request",
+            "ErrorEquals": [
+              "States.ALL"
+            ],
+            "ResultPath": "$.notifyerror"
+          }
+        ],
+        "Resource": "arn:aws:states:::lambda:invoke",
+        "Retry": [
+          {
+            "BackoffRate": 2,
+            "ErrorEquals": [
+              "Lambda.ServiceException",
+              "Lambda.AWSLambdaException",
+              "Lambda.SdkClientException",
+              "Lambda.TooManyRequestsException"
+            ],
+            "IntervalSeconds": 2,
+            "MaxAttempts": 6
+          }
+        ],
+        "Type": "Task"
+      },
+      "Grant Request": {
+        "Next": "DynamoDB Update Item",
+        "Catch": [
+          {
+            "Next": "DynamoDB Update Item",
+            "ErrorEquals": [
+              "States.ALL"
+            ],
+            "ResultPath": "$.granterror"
+          }
+        ],
+        "Parameters": {
+          "FunctionName.$": "$.fn_grantfunction_arn",
+          "Payload.$": "$"
+        },
+        "Resource": "arn:aws:states:::lambda:invoke",
+        "Retry": [
+          {
+            "BackoffRate": 2,
+            "ErrorEquals": [
+              "Lambda.ServiceException",
+              "Lambda.AWSLambdaException",
+              "Lambda.SdkClientException",
+              "Lambda.TooManyRequestsException"
+            ],
+            "IntervalSeconds": 2,
+            "MaxAttempts": 6
+          }
+        ],
+        "Type": "Task"
+      },
+      "DynamoDB Update Item": {
+        "Next": "Grant Error?",
+        "Parameters": {
+          "ExpressionAttributeValues": {
+            ":status": {
+              "S.$": "States.Format(Granted)"
+            }
+          },
+          "Key": {
+            "requestId": {
+              "S.$": "$.requestId"
+            }
+          },
+          "TableName.$": "$.requests_table",
+          "UpdateExpression": "SET requestStatus = :status"
+        },
+        "Resource": "arn:aws:states:::dynamodb:updateItem",
+        "ResultPath": "$.lastTaskResult",
+        "Type": "Task"
+      },
+      "Grant Error?": {
+        "Choices": [
+          {
+            "IsPresent": true,
+            "Next": "Handle Error",
+            "Variable": "$.granterror"
+          }
+        ],
+        "Default": "Wait",
+        "Type": "Choice"
+      },
+      "Wait": {
+        "Next": "Revoke Permission",
+        "SecondsPath": "$.duration",
+        "Type": "Wait"
+      },
+      "Revoke Permission": {
+        "End": true,
+        "Parameters": {
+          "Input.$": "$",
+          "StateMachine.$": "$.revoke_sm"
+        },
+        "Resource": "arn:aws:states:::states:startExecution",
+        "Type": "Task"
+      },
+      "Handle Error": {
+        "End": true,
+        "Parameters": {
+          "FunctionName.$": "$.fn_errorhandle_arn",
+          "Payload.$": "$"
+        },
+        "Resource": "arn:aws:states:::lambda:invoke",
+        "ResultPath": "$.lastTaskResult",
+        "Retry": [
+          {
+            "BackoffRate": 2,
+            "ErrorEquals": [
+              "Lambda.ServiceException",
+              "Lambda.AWSLambdaException",
+              "Lambda.SdkClientException",
+              "Lambda.TooManyRequestsException"
+            ],
+            "IntervalSeconds": 2,
+            "MaxAttempts": 6
+          }
+        ],
+        "Type": "Task"
+      }
+    }
+  }
