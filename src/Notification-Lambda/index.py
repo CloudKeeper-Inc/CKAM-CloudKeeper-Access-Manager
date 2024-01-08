@@ -81,7 +81,13 @@ def lambda_handler(event, context):
             toAddresses = [requesterEmail]
             subject = f'CKAM - Access Duration Complete for {permission}'
             messageHtml = f'<html><body><p>Access Duration for {permission} Completed </p></body></html>'
+        case 'expired':
+            toAddresses = [requesterEmail]
+            subject = f'CKAM - Access Request Expired for {permission}'
+            messageHtml = f'<html><body><p>Access Request Expired for {permission}</p></body></html>'
         case _:
             print(f"Request status unexpected, exiting: {status.lower()}")
             exit()
 
+
+    send_ses(toAddresses, subject, messageHtml)
