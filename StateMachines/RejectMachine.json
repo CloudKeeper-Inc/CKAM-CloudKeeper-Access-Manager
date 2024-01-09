@@ -1,0 +1,86 @@
+{
+    "Comment": "CloudKeeper Access Manager - Reject State Machine",
+    "StartAt": "Status?",
+    "States": {
+      "Status?": {
+        "Choices": [
+          {
+            "Next": "Notify Request Cancelled",
+            "StringEquals": "cancelled",
+            "Variable": "$.status"
+          },
+          {
+            "Next": "Notify Request Rejected",
+            "StringEquals": "rejected",
+            "Variable": "$.status"
+          }
+        ],
+        "Type": "Choice"
+      },
+      "Notify Request Cancelled": {
+        "Next": "Success",
+        "Catch": [
+          {
+            "Next": "Success",
+            "ErrorEquals": [
+              "States.ALL"
+            ]
+          }
+        ],
+        "Parameters": {
+          "FunctionName.$": "$.fn_teamnotifications_arn",
+          "Payload.$": "$"
+        },
+        "Resource": "arn:aws:states:::lambda:invoke",
+        "ResultPath": "$.lastTaskResult",
+        "Retry": [
+          {
+            "BackoffRate": 2,
+            "ErrorEquals": [
+              "Lambda.ServiceException",
+              "Lambda.AWSLambdaException",
+              "Lambda.SdkClientException",
+              "Lambda.TooManyRequestsException"
+            ],
+            "IntervalSeconds": 2,
+            "MaxAttempts": 6
+          }
+        ],
+        "Type": "Task"
+      },
+      "Notify Request Rejected": {
+        "Catch": [
+          {
+            "ErrorEquals": [
+              "States.ALL"
+            ],
+            "Next": "Success"
+          }
+        ],
+        "Next": "Success",
+        "Parameters": {
+          "FunctionName.$": "$.fn_teamnotifications_arn",
+          "Payload.$": "$"
+        },
+        "Resource": "arn:aws:states:::lambda:invoke",
+        "ResultPath": "$.lastTaskResult",
+        "Retry": [
+          {
+            "BackoffRate": 2,
+            "ErrorEquals": [
+              "Lambda.ServiceException",
+              "Lambda.AWSLambdaException",
+              "Lambda.SdkClientException",
+              "Lambda.TooManyRequestsException"
+            ],
+            "IntervalSeconds": 2,
+            "MaxAttempts": 6
+          }
+        ],
+        "Type": "Task"
+      },
+      "Success": {
+        "Type": "Succeed"
+      }
+    }
+  }
