@@ -53,6 +53,8 @@ def assignPermission(requesterId, permission, groupId):
     except Exception as e:
         print(f"Can't assign user to {permission}" + str(e))
 
+    return response
+
     
 
 def lambda_handler(event, context):
@@ -61,6 +63,8 @@ def lambda_handler(event, context):
 
     groupId = getGroupId(permission)
     requesterId = getUserId(requesterEmail)
-    assignPermission(requesterId, permission, groupId)
+    response = assignPermission(requesterId, permission, groupId)
+
+    return response
 
 
