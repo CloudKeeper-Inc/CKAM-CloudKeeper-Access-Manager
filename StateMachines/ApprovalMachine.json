@@ -6,8 +6,8 @@
       "Next": "Pending?",
       "Parameters": {
         "Key": {
-          "id": {
-            "S.$": "$.id"
+          "requestId": {
+            "N.$": "$.id"
           }
         },
         "TableName.$": "$.requests_table"
