@@ -53,7 +53,7 @@ def lambda_handler(event, context):
     duration = response['Item']['duration']['S']
     status = response['Item']['requestStatus']['S']
 
-    table = dynamo.table(approverTable)
+    table = dynamo.Table(approverTable)
     response = table.scan()
 
     approvers = []
