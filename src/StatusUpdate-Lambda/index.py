@@ -5,7 +5,7 @@ requestTable = os.getenv('REQUESTTABLENAME')
 dynamoClient = boto3.client('dynamodb')
 
 def updateRequestStatus(requestId):
-    response = dynamoClient.update(
+    response = dynamoClient.update_item(
         TableName = requestTable,
         
         ExpressionAttributeNames = {
