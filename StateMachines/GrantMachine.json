@@ -69,7 +69,7 @@
         "Parameters": {
           "ExpressionAttributeValues": {
             ":status": {
-              "S.$": "$.requestStatus"
+              "N.$": "$.requestStatus"
             }
           },
           "Key": {
