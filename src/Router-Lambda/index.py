@@ -19,7 +19,7 @@ ckam_config = {
     "fn_teamstatus_arn": fnStatusArn
 }
 
-def pendingFlow(requestId, duration):
+def pendingFlow(requestId):
     sfnClient = boto3.client('stepfunctions')
     ckam_config["requestId"] = requestId
 
@@ -43,13 +43,15 @@ def approvedFlow():
     except Exception as e:
         print("Error:" + str(e))
 
-def rejectedFlow():
+def rejectedFlow(requestId, requestStatus):
     sfnClient = boto3.client('stepfunctions')
+    ckam_config["status"] = requestStatus
+    ckam_config["requestId"] = requestId
 
     try:
         response = sfnClient.start_execution(
             stateMachineArn = rejectStateMachine,
-            input = "{}"
+            input = json.dumps(ckam_config)
         )
     except Exception as e:
         print("Error:" + str(e))
@@ -65,13 +67,13 @@ def extractEvents(event):
     
     if requestStatus.lower() == "pending":
         print('[INFO] Pending Flow Invoked')
-        pendingFlow(requestId, ssnDuration)
+        pendingFlow(requestId)
     elif requestStatus.lower() == "approved":
         print('[INFO] Approved Flow Invoked')
         approvedFlow()
-    elif requestStatus.lower() == "rejected":
-        print('[INFO] Rejection Flow Invoked')
-        rejectedFlow()
+    elif requestStatus.lower() in ["rejected", "cancelled"]:
+        print('[INFO] Rejection/Cancellation Flow Invoked')
+        rejectedFlow(requestId, requestStatus)
     else:
         pass
     
