@@ -28,7 +28,7 @@ def getUserId(requesterEmail):
 
     while 'NextToken' in response:
         response = identityClient.list_users(
-            IdentityStoreId = 'd-90679c6abe',
+            IdentityStoreId = identityStore,
             NextToken = response['NextToken']
         )
         users.extend(response['Users'])
