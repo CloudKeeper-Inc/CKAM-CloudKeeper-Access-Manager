@@ -22,7 +22,6 @@ ckam_config = {
 def pendingFlow(requestId, duration):
     sfnClient = boto3.client('stepfunctions')
     ckam_config["requestId"] = requestId
-    ckam_config["expire"] = duration
 
     try:
         response = sfnClient.start_execution(

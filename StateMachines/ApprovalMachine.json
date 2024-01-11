@@ -62,7 +62,7 @@
       "Choices": [
         {
           "Variable": "$.result.Item.requestStatus.S",
-          "StringEquals": "pending",
+          "StringEquals": "Pending",
           "Next": "Update Request Status"
         }
       ],
@@ -94,8 +94,8 @@
     },
     "Wait": {
       "Next": "DynamoDB GetStatus",
-      "SecondsPath": "$.expire",
-      "Type": "Wait"
+      "Type": "Wait",
+      "Seconds": 3600
     }
   }
 }
