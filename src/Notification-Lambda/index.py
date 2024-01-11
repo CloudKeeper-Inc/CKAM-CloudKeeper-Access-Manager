@@ -86,7 +86,7 @@ def lambda_handler(event, context):
             subject = f'CKAM - Access Request Expired for {permission}'
             messageHtml = f'<html><body><p>Access Request Expired for {permission}</p></body></html>'
         case 'cancelled':
-            toAddresses = approvers + requesterEmail
+            toAddresses = approvers + [requesterEmail]
             subject = f'CKAM - Access Request Cancelled for {permission}'
             messageHtml = f'<html><body><p>Access Request Cancelled for {permission}</p></body></html>'
         case _:
