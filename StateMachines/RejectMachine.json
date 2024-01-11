@@ -6,12 +6,12 @@
         "Choices": [
           {
             "Next": "Notify Request Cancelled",
-            "StringEquals": "cancelled",
+            "StringEquals": "Cancelled",
             "Variable": "$.status"
           },
           {
             "Next": "Notify Request Rejected",
-            "StringEquals": "rejected",
+            "StringEquals": "Rejected",
             "Variable": "$.status"
           }
         ],
