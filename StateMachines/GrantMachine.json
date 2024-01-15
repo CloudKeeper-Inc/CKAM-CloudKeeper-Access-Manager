@@ -69,12 +69,12 @@
         "Parameters": {
           "ExpressionAttributeValues": {
             ":status": {
-              "N.$": "$.requestStatus"
+              "S.$": "$.requestStatus"
             }
           },
           "Key": {
             "requestId": {
-              "S.$": "$.requestId"
+              "N.$": "$.requestId"
             }
           },
           "TableName.$": "$.requests_table",

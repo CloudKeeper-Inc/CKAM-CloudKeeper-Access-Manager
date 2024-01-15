@@ -1,0 +1,157 @@
+{
+    "Comment": "CloudKeeper Access Manager - Revoke State Machine",
+    "StartAt": "DynamoDB GetStatus",
+    "States": {
+        "DynamoDB GetStatus": {
+            "Next": "Revoked?",
+            "Parameters": {
+                "Key": {
+                    "requestId": {
+                        "S.$": "$.requestId"
+                    }
+                },
+                "TableName.$": "$.requests_table" 
+            },
+            "Resource": "arn:aws:states:::dynamodb:getItem",
+            "ResultPath": "$.data",
+            "Type": "Task"
+        },
+        "Revoked?":{
+            "Choices": [
+                {
+                    "And": [
+                        {
+                            "StringEquals": "Completed",
+                            "Variable": "$.data.Item.requestStatus.S"
+                        },
+                        {
+                            "IsPresent": true,
+                            "Variable": "$.result"
+                        }
+                    ],
+                    "Next": "Pass"
+                }
+            ],
+            "Default": "Revoke Permission",
+            "Type": "Choice"
+        },
+        "Revoke Permission": {
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                        "States.ALL"
+                    ],
+                    "Next":"Notify Error",
+                    "ResultPath": "$.statusError"
+                }
+            ],
+            "Next": "Update DynamoDb",
+            "Parameters": {
+                "FunctionName.$": "$.fn_revokefunction_arn",
+                "Payload.$": "$"
+            },
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "ResultPath": "$.revoke_result",
+            "Retry": [
+                {
+                    "BackoffRate": 2,
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException",
+                        "Lambda.TooManyRequestsException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6
+                }
+            ],
+            "Type": "Task"
+        },
+        "Update Dynamodb": {
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                        "States.ALL"
+                    ],
+                    "Next": "Notify Error",
+                    "ResultPath": "$.statusError"
+                }
+            ],
+            "Next": "Notify Request Completion",
+            "Parameters": {
+                "ExpressionAttributeValues": {
+                    ":status": {
+                        "S.$": "$.requestStatus"
+                    }
+                },
+                "Key": {
+                    "requestId": {
+                        "N.$": "$.requestId"
+                    }
+                },
+                "TableName.$": "$.requests_table",
+                "UpdateExpression": "SET requestStatus = :status"
+            },
+            "Resource": "arn:aws:states:::dynamodb:updateItem",
+            "ResultPath": "$.lastTaskResult",
+            "Type": "Task"
+        },
+        "Notify Request Completion": {
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                        "States.ALL"
+                    ],
+                    "Next": "Notify Error",
+                    "ResultPath": "$.statusError"
+                }
+            ],
+            "Parameters": {
+                "FunctionName.$": ".$fn_teamnotifications_arn",
+                "Payload.$": "$"
+            },
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Retry": [
+                {
+                    "BackoffRate": 2,
+                    "ErrorEquals": [
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException",
+                        "Lambda.ServiceException",
+                        "Lambda.TooManyRequestsException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6
+                }
+            ],
+            "Type": "Task",
+            "End": true
+        },
+        "Notify Error": {
+            "Parameters": {
+                "FunctionName.$": ".$fn_error_fn",
+                "Payload.$": "$"
+            },
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Retry": [
+                {
+                    "BackoffRate": 2,
+                    "ErrorEquals": [
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException",
+                        "Lambda.ServiceException",
+                        "Lambda.TooManyRequestsException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6
+                }
+            ],
+            "Type": "Task",
+            "End": true
+        },
+        "Pass": {
+            "End": true,
+            "Type": "Pass"
+        }
+    }
+}
