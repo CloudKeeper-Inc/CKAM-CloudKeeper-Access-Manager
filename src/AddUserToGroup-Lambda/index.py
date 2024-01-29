@@ -1,10 +1,22 @@
 import boto3
 import os
 
-identityClient = boto3.client('identitystore')
 groupTable = os.getenv('GROUPTABLE')
 identityStore = os.getenv('IDENTITYSTOREID')
+crossAccRole = os.getenv('CROSSACCROLE')
+
 dynamoClient = boto3.client('dynamodb')
+stsClient = boto3.client('sts')
+
+crossAcc = stsClient.assume_role(
+    RoleArn = crossAccRole,
+    RoleSessionName = "CKAM - Grant Permission"
+)
+ACCESSKEY = crossAcc['Credentials']['AccessKeyId']
+SECRETKEY = crossAcc['Credentials']['SecretAccessKey']
+SESSIONTOKEN = crossAcc['Credentials']['SessionToken']
+
+identityClient = boto3.client('identitystore', aws_access_key_id=ACCESSKEY, aws_secret_access_key=SECRETKEY, aws_session_token=SESSIONTOKEN)
 
 def getGroupId(permission):
     response = dynamoClient.get_item(
