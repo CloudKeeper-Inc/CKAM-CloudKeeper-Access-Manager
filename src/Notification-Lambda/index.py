@@ -43,14 +43,14 @@ def lambda_handler(event, context):
         TableName = requestTable,
         Key = {
             'requestId': {
-                'N': requestId
+                'S': requestId
             }
         }
     )
     
     requesterEmail = response['Item']['userEmail']['S']
     permission = response['Item']['permissionType']['S']
-    duration = response['Item']['duration']['S']
+    duration = response['Item']['duration']['N']
     status = response['Item']['requestStatus']['S']
 
     table = dynamo.Table(approverTable)
@@ -95,3 +95,8 @@ def lambda_handler(event, context):
 
 
     send_ses(toAddresses, subject, messageHtml)
+
+    return {
+        'requesterEmail': requesterEmail,
+        'permissionType': permission
+    }
