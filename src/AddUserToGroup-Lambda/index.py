@@ -10,7 +10,7 @@ stsClient = boto3.client('sts')
 
 crossAcc = stsClient.assume_role(
     RoleArn = crossAccRole,
-    RoleSessionName = "CKAM - Grant Permission"
+    RoleSessionName = "CKAMGrantPermission"
 )
 ACCESSKEY = crossAcc['Credentials']['AccessKeyId']
 SECRETKEY = crossAcc['Credentials']['SecretAccessKey']
