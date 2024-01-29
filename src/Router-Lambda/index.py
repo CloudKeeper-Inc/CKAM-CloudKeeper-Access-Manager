@@ -36,6 +36,7 @@ def approvedFlow(requestId, ssnDuration):
     sfnClient = boto3.client('stepfunctions')
     ckam_config["requestId"] = requestId
     ckam_config["duration"] = ssnDuration
+    ckam_config["permanentDuration"] = 0
     
     try:
         response = sfnClient.start_execution(
@@ -65,7 +66,7 @@ def extractEvents(event):
     permission = event["permissionType"]['S']
     usrName = event["name"]['S']
     requestStatus = event["requestStatus"]['S']
-    requestId = event["requestId"]['N']
+    requestId = event["requestId"]['S']
     
     if requestStatus.lower() == "pending":
         print('[INFO] Pending Flow Invoked')
