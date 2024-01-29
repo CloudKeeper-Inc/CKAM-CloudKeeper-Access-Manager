@@ -1,7 +1,7 @@
 import boto3
 import os
 
-groupTable = os.getenv('GROUPTABLE')
+metdataTable = os.getenv('METADATATABLE')
 identityStore = os.getenv('IDENTITYSTOREID')
 crossAccRole = os.getenv('CROSSACCROLE')
 
@@ -20,15 +20,15 @@ identityClient = boto3.client('identitystore', aws_access_key_id=ACCESSKEY, aws_
 
 def getGroupId(permission):
     response = dynamoClient.get_item(
-        TableName = groupTable,
+        TableName = metdataTable,
         Key = {
-            'accountName': {
+            'DisplayName': {
                 'S': permission
             }
         }
     )
 
-    groupId = response['Item']['groupId']['S']
+    groupId = response['Item']['GroupId']['S']
 
     return groupId
 
