@@ -4,6 +4,7 @@ import os
 metdataTable = os.getenv('METADATATABLE')
 identityStore = os.getenv('IDENTITYSTOREID')
 crossAccRole = os.getenv('CROSSACCROLE')
+requestTable = os.getenv('REQUESTTABLENAME')
 
 dynamoClient = boto3.client('dynamodb')
 stsClient = boto3.client('sts')
@@ -67,16 +68,29 @@ def assignPermission(requesterId, permission, groupId):
 
     return response
 
-    
+def getRequestDetails(requestId):
+    response = dynamoClient.get_item(
+        TableName = requestTable,
+        Key = {
+            'requestId': {
+                'S': requestId
+            }
+        }
+    )
+
+    userEmail = response['Item']['userEmail']['S']
+    permission = response['Item']['permissionType']['S']
+
+    return userEmail, permission
 
 def lambda_handler(event, context):
-    requesterEmail = event['userEmail']
-    permission = event['permissionType']
+    requestId = event['requestId']
+    userEmail, permission = getRequestDetails(requestId)
 
     groupId = getGroupId(permission)
-    requesterId = getUserId(requesterEmail)
+    requesterId = getUserId(userEmail)
     response = assignPermission(requesterId, permission, groupId)
 
-    return response
-
-
+    return {
+        'requestStatus': 'Approved'
+    }
