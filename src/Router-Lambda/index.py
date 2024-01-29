@@ -36,7 +36,6 @@ def approvedFlow(requestId, ssnDuration):
     sfnClient = boto3.client('stepfunctions')
     ckam_config["requestId"] = requestId
     ckam_config["duration"] = ssnDuration
-    ckam_config["permanentDuration"] = 0
     
     try:
         response = sfnClient.start_execution(
@@ -61,10 +60,10 @@ def rejectedFlow(requestId, requestStatus):
 
 def extractEvents(event):
     event = event["Records"][0]["dynamodb"]["NewImage"]
-    ssnDuration = event["duration"]['S']
+    ssnDuration = event["duration"]['N']
     usrEmail = event["userEmail"]['S']
     permission = event["permissionType"]['S']
-    usrName = event["name"]['S']
+    usrName = event["userName"]['S']
     requestStatus = event["requestStatus"]['S']
     requestId = event["requestId"]['S']
     
@@ -73,7 +72,7 @@ def extractEvents(event):
         pendingFlow(requestId)
     elif requestStatus.lower() == "approved":
         print('[INFO] Approved Flow Invoked')
-        approvedFlow()
+        approvedFlow(requestId, ssnDuration)
     elif requestStatus.lower() in ["rejected", "cancelled"]:
         print('[INFO] Rejection/Cancellation Flow Invoked')
         rejectedFlow(requestId, requestStatus)
