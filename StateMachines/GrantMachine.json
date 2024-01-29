@@ -1,43 +1,12 @@
 {
   "Comment": "CloudKeeper Access Manager - Grant State Machine",
-  "StartAt": "Notify Request",
+  "StartAt": "Grant Request",
   "States": {
-    "Notify Request": {
-      "Next": "Grant Request",
-      "Parameters": {
-        "FunctionName.$": "$.fn_teamnotifications_arn",
-        "Payload.$": "$"
-      },
-      "Catch": [
-        {
-          "Next": "Grant Request",
-          "ErrorEquals": [
-            "States.ALL"
-          ],
-          "ResultPath": "$.notifyerror"
-        }
-      ],
-      "Resource": "arn:aws:states:::lambda:invoke",
-      "Retry": [
-        {
-          "BackoffRate": 2,
-          "ErrorEquals": [
-            "Lambda.ServiceException",
-            "Lambda.AWSLambdaException",
-            "Lambda.SdkClientException",
-            "Lambda.TooManyRequestsException"
-          ],
-          "IntervalSeconds": 2,
-          "MaxAttempts": 6
-        }
-      ],
-      "Type": "Task"
-    },
     "Grant Request": {
-      "Next": "DynamoDB Update Item",
+      "Next": "Grant Error?",
       "Catch": [
         {
-          "Next": "DynamoDB Update Item",
+          "Next": "Grant Error?",
           "ErrorEquals": [
             "States.ALL"
           ],
@@ -62,26 +31,6 @@
           "MaxAttempts": 6
         }
       ],
-      "Type": "Task"
-    },
-    "DynamoDB Update Item": {
-      "Next": "Grant Error?",
-      "Parameters": {
-        "ExpressionAttributeValues": {
-          ":status": {
-            "S.$": "$.requestStatus"
-          }
-        },
-        "Key": {
-          "requestId": {
-            "S.$": "$.requestId"
-          }
-        },
-        "TableName.$": "$.requests_table",
-        "UpdateExpression": "SET requestStatus = :status"
-      },
-      "Resource": "arn:aws:states:::dynamodb:updateItem",
-      "ResultPath": "$.lastTaskResult",
       "Type": "Task"
     },
     "Grant Error?": {
