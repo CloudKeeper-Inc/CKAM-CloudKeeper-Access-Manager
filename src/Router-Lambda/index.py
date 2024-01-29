@@ -32,13 +32,15 @@ def pendingFlow(requestId):
         print("Error:" + str(e))
 
 
-def approvedFlow():
+def approvedFlow(requestId, ssnDuration):
     sfnClient = boto3.client('stepfunctions')
-
+    ckam_config["requestId"] = requestId
+    ckam_config["duration"] = ssnDuration
+    
     try:
         response = sfnClient.start_execution(
             stateMachineArn = grantStateMachine,
-            input = "{}"
+            input = json.dumps(ckam_config)
         )
     except Exception as e:
         print("Error:" + str(e))
