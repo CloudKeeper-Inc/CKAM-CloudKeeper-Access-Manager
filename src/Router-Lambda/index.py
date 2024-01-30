@@ -9,6 +9,8 @@ revokeStateMachine = os.getenv('REVOKESTATEMACHINEARN')
 requestTableName = os.getenv('REQUESTTABLENAME')
 approverTableName = os.getenv('APPROVERTABLENAME')
 fnNotificationsArn = os.getenv('NOTIFICATIONLAMBDA')
+fnRevokeArn = os.getenv('REVOKEFUNCTIONARN')
+fnGrantArn = os.getenv('GRANTFUNCTIONARN')
 fnStatusArn = os.getenv('STATUSLAMBDA')
 
 ckam_config = {
@@ -16,7 +18,9 @@ ckam_config = {
     "revoke_sm": revokeStateMachine,
     "grant_sm": grantStateMachine,
     "fn_teamnotifications_arn": fnNotificationsArn,
-    "fn_teamstatus_arn": fnStatusArn
+    "fn_teamstatus_arn": fnStatusArn,
+    "fn_grantfunction_arn": fnGrantArn,
+    "fn_revokefunction_arn": fnRevokeArn
 }
 
 def pendingFlow(requestId):
@@ -36,6 +40,7 @@ def approvedFlow(requestId, ssnDuration):
     sfnClient = boto3.client('stepfunctions')
     ckam_config["requestId"] = requestId
     ckam_config["duration"] = ssnDuration
+    ckam_config["permanentDuration"] = 0
     
     try:
         response = sfnClient.start_execution(
