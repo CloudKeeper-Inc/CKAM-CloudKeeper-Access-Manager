@@ -31,6 +31,7 @@
           "MaxAttempts": 6
         }
       ],
+      "ResultPath": "$.grantoutput",
       "Type": "Task"
     },
     "Grant Error?": {
@@ -48,8 +49,8 @@
       "Type": "Choice",
       "Choices": [
         {
-          "Variable": "$.duration",
-          "StringEqualsPath": "$.permanentDuration",
+          "Variable": "$$.Execution.Input.duration",
+          "StringEqualsPath": "$$.Execution.Input.permanentDuration",
           "Next": "Pass"
         }
       ],
@@ -72,7 +73,7 @@
     "Handle Error": {
       "Parameters": {
         "FunctionName.$": "$.fn_errorhandle_arn",
-        "Payload.$": "$"
+        "Payload.$": "$$.Execution.Input"
       },
       "Resource": "arn:aws:states:::lambda:invoke",
       "ResultPath": "$.lastTaskResult",
