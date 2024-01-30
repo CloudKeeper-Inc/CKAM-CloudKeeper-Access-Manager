@@ -10,25 +10,17 @@
                         "S.$": "$.requestId"
                     }
                 },
-                "TableName.$": "$.requests_table" 
+                "TableName.$": "$.requests_table"
             },
             "Resource": "arn:aws:states:::dynamodb:getItem",
             "ResultPath": "$.data",
             "Type": "Task"
         },
-        "Revoked?":{
+        "Revoked?": {
             "Choices": [
                 {
-                    "And": [
-                        {
-                            "StringEquals": "Completed",
-                            "Variable": "$.data.Item.requestStatus.S"
-                        },
-                        {
-                            "IsPresent": true,
-                            "Variable": "$.result"
-                        }
-                    ],
+                    "StringEquals": "Completed",
+                    "Variable": "$.data.Item.requestStatus.S",
                     "Next": "Pass"
                 }
             ],
@@ -41,7 +33,7 @@
                     "ErrorEquals": [
                         "States.ALL"
                     ],
-                    "Next":"Notify Error",
+                    "Next": "Notify Error",
                     "ResultPath": "$.statusError"
                 }
             ],
@@ -67,7 +59,7 @@
             ],
             "Type": "Task"
         },
-        "Update Dynamodb": {
+        "Update DynamoDb": {
             "Catch": [
                 {
                     "ErrorEquals": [
@@ -79,18 +71,21 @@
             ],
             "Next": "Notify Request Completion",
             "Parameters": {
+                "ExpressionAttributeNames": {
+                    "#RS": "requestStatus"
+                },
                 "ExpressionAttributeValues": {
                     ":status": {
-                        "S.$": "$.requestStatus"
+                        "S": "Completed"
                     }
                 },
                 "Key": {
                     "requestId": {
-                        "N.$": "$.requestId"
+                        "S.$": "$.requestId"
                     }
                 },
                 "TableName.$": "$.requests_table",
-                "UpdateExpression": "SET requestStatus = :status"
+                "UpdateExpression": "SET #RS = :status"
             },
             "Resource": "arn:aws:states:::dynamodb:updateItem",
             "ResultPath": "$.lastTaskResult",
@@ -107,7 +102,7 @@
                 }
             ],
             "Parameters": {
-                "FunctionName.$": ".$fn_teamnotifications_arn",
+                "FunctionName.$": "$.fn_teamnotifications_arn",
                 "Payload.$": "$"
             },
             "Resource": "arn:aws:states:::lambda:invoke",
@@ -129,7 +124,7 @@
         },
         "Notify Error": {
             "Parameters": {
-                "FunctionName.$": ".$fn_error_fn",
+                "FunctionName.$": "$.fn_error_fn",
                 "Payload.$": "$"
             },
             "Resource": "arn:aws:states:::lambda:invoke",
