@@ -40,7 +40,7 @@ def approvedFlow(requestId, ssnDuration):
     sfnClient = boto3.client('stepfunctions')
     ckam_config["requestId"] = requestId
     ckam_config["duration"] = ssnDuration
-    ckam_config["permanentDuration"] = 0
+    ckam_config["permanentDuration"] = "0"
     
     try:
         response = sfnClient.start_execution(
