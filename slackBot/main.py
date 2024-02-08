@@ -1,6 +1,7 @@
 import os
 import re
 import boto3
+import ngrok
 from slack_sdk import WebClient
 from slack_bolt import App
 from dotenv import load_dotenv
@@ -9,6 +10,9 @@ from datetime import datetime, timedelta
 load_dotenv()
 
 bot_client = WebClient(token=os.environ['SLACK_TOKEN'])
+
+listener = ngrok.forward("localhost:3001", authtoken_from_env=True,
+    domain=os.getenv('DOMAIN'))
 
 # Initialize your app with your bot token and signing secret
 app = App(
