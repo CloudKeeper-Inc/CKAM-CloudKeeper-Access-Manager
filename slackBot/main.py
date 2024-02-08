@@ -11,8 +11,8 @@ load_dotenv()
 
 bot_client = WebClient(token=os.environ['SLACK_TOKEN'])
 
-listener = ngrok.forward("localhost:3001", authtoken_from_env=True,
-    domain=os.getenv('DOMAIN'))
+listener = ngrok.forward(addr = "localhost:3001", authtoken = os.getenv('NGROKAUTHTOKEN'),
+    domain = os.getenv('DOMAIN'))
 
 # Initialize your app with your bot token and signing secret
 app = App(
