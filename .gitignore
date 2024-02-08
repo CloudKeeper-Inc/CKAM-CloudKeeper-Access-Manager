@@ -5,3 +5,5 @@ identity.py
 .DS_Store
 /env
 /help
+slackBot/botEnv
+slackBot/env
