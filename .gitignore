@@ -6,4 +6,4 @@ identity.py
 /env
 /help
 slackBot/botEnv
-/slackBot/.env
+slackBot/.env
