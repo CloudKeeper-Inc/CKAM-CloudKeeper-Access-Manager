@@ -165,6 +165,8 @@ def submitForm(ack, respond, body, logger):
             respond('Invalid value for Just-in-time access.\nPlease retry by mentioning bot again. :bye:')
         elif body["state"]["values"][timeBlockId]["plain_text_input-action"]["value"]:
             jit_time = float(body["state"]["values"][timeBlockId]["plain_text_input-action"]["value"])
+        elif not body["state"]["values"][timeBlockId]["plain_text_input-action"]["value"]:
+            respond('*Time in hours* field is mandatory when *Access type* is Just-in-time.\nPlease retry by mentioning bot again. :bye:')
     if body["state"]["values"][reasonBlockId]["plain_text_input-action"]["value"]:
         reason = body["state"]["values"][reasonBlockId]["plain_text_input-action"]["value"]
 
