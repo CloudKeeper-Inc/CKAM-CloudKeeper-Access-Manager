@@ -101,7 +101,7 @@ def appMention(event):
             },
             {
                 "type": "input",
-                "element": {"type": "plain_text_input", "text": "Mandatory for JIT access type", "action_id": "plain_text_input-action"},
+                "element": {"type": "plain_text_input", "action_id": "plain_text_input-action"},
                 "label": {"type": "plain_text", "text": "Time in hours", "emoji": False},
                 "optional": True
             },
