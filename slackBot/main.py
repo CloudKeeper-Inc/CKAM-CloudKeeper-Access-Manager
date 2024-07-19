@@ -163,6 +163,8 @@ def submitForm(ack, respond, body, logger):
             jit_time = 0
         elif access_type == 'Just-in-time' and body["state"]["values"][timeBlockId]["plain_text_input-action"]["value"] == '0':
             respond('Invalid value for Just-in-time access.\nPlease retry by mentioning bot again. :bye:')
+        elif not body["state"]["values"][timeBlockId]["plain_text_input-action"]["value"]:
+            respond('*Time in hours* field is mandatory when *Access type* is Just-in-time.\nPlease retry by mentioning bot again. :bye:')
         elif body["state"]["values"][timeBlockId]["plain_text_input-action"]["value"]:
             jit_time = float(body["state"]["values"][timeBlockId]["plain_text_input-action"]["value"])
     if body["state"]["values"][reasonBlockId]["plain_text_input-action"]["value"]:
@@ -206,6 +208,9 @@ def submitForm(ack, respond, body, logger):
             },
             'requestStatus': {
                 'S': request_status
+            },
+            'approver': {
+                'S': ''
             }
         }
     )
@@ -298,26 +303,39 @@ def handle_some_action(ack, body, logger):
         AttributesToGet=['requestStatus']
     )
     
+    #Reading Request approver's name from dynamoDb table
+    request_approver = dynamoClient.get_item(
+        TableName = requestTable,
+        Key = {
+            'requestId': {'S': request_id}
+        },
+        AttributesToGet=['approver']
+    )
+
     #Updating request status in dynamoDb table
     if request_status["Item"]["requestStatus"]["S"] == 'Pending':
         dynamoClient.update_item(
-            TableName = requestTable,
-            
-            ExpressionAttributeNames = {
-                '#RS': 'requestStatus'
+            TableName=requestTable,
+            ExpressionAttributeNames={
+                '#RS': 'requestStatus',
+                '#AP': 'approver'
             },
-            ExpressionAttributeValues = {
-                ':u' : {
+            ExpressionAttributeValues={
+                ':status': {
                     'S': 'Approved'
+                },
+                ':approver': {
+                    'S': user_name
                 }
             },
-            Key = {
+            Key={
                 'requestId': {
                     'S': request_id
                 }
             },
-            UpdateExpression='SET #RS = :u'
+            UpdateExpression='SET #RS = :status, #AP = :approver'
         )
+
         result += f'\nRequest *Approved* by *\'{user_name}\'* 👍'
         bot_client.chat_delete(channel=user_id, ts=body["container"]["message_ts"])
         bot_client.chat_postMessage(channel=user_id, text=result)
@@ -336,11 +354,24 @@ def handle_some_action(ack, body, logger):
         result = result[32:]
         bot_client.chat_postMessage(channel=requester_id, text=result)
 
-    #If request is already addressed by someone else
+    #If request is already addressed by someone else or expired
     else:
-        result += '\nThis request is either *Approved/Denied* by another admin or has *Expired* '
-        bot_client.chat_delete(channel=user_id, ts=body["container"]["message_ts"])
-        bot_client.chat_postMessage(channel=user_id, text=result)
+        request_approver = request_approver["Item"]["approver"]["S"]
+
+        if request_status["Item"]["requestStatus"]["S"] == 'Rejected':
+            result += f'\nThis request is already *Denied* by *{request_approver}* :x:'
+            bot_client.chat_delete(channel=user_id, ts=body["container"]["message_ts"])
+            bot_client.chat_postMessage(channel=user_id, text=result)
+
+        elif request_status["Item"]["requestStatus"]["S"] == 'Approved':
+            result += f'\nThis request is already *Approved* by *{request_approver}* :x:'
+            bot_client.chat_delete(channel=user_id, ts=body["container"]["message_ts"])
+            bot_client.chat_postMessage(channel=user_id, text=result)
+
+        else:
+            result += '\nThis request has *Expired* :x:'
+            bot_client.chat_delete(channel=user_id, ts=body["container"]["message_ts"])
+            bot_client.chat_postMessage(channel=user_id, text=result)
 
 
 @app.action("deny")
@@ -387,27 +418,40 @@ def handle_some_action(ack, body, logger):
         },
         AttributesToGet=['requestStatus']
     )
+
+    #Reading Request approver's name from dynamoDb table
+    request_approver = dynamoClient.get_item(
+        TableName = requestTable,
+        Key = {
+            'requestId': {'S': request_id}
+        },
+        AttributesToGet=['approver']
+    )
     
     #Updating request status in dynamoDb table
     if request_status["Item"]["requestStatus"]["S"] == 'Pending':
         dynamoClient.update_item(
-            TableName = requestTable,
-            
-            ExpressionAttributeNames = {
-                '#RS': 'requestStatus'
+            TableName=requestTable,
+            ExpressionAttributeNames={
+                '#RS': 'requestStatus',
+                '#AP': 'approver'
             },
-            ExpressionAttributeValues = {
-                ':u' : {
+            ExpressionAttributeValues={
+                ':status': {
                     'S': 'Rejected'
+                },
+                ':approver': {
+                    'S': user_name
                 }
             },
-            Key = {
+            Key={
                 'requestId': {
                     'S': request_id
                 }
             },
-            UpdateExpression='SET #RS = :u'
+            UpdateExpression='SET #RS = :status, #AP = :approver'
         )
+
         result += f'\nRequest *Denied* by *\'{user_name}\'* :thumbsdown:'
         bot_client.chat_delete(channel=user_id, ts=body["container"]["message_ts"])
         bot_client.chat_postMessage(channel=user_id, text=result)
@@ -426,11 +470,24 @@ def handle_some_action(ack, body, logger):
         result = result[32:]
         bot_client.chat_postMessage(channel=requester_id, text=result)
 
-    #If request is already addressed by someone else
+    #If request is already addressed by someone else or expired
     else:
-        result += '\nThis request is either *Approved/Denied* by another admin or has *Expired* :x:'
-        bot_client.chat_delete(channel=user_id, ts=body["container"]["message_ts"])
-        bot_client.chat_postMessage(channel=user_id, text=result)
+        request_approver = request_approver["Item"]["approver"]["S"]
+
+        if request_status["Item"]["requestStatus"]["S"] == 'Rejected':
+            result += f'\nThis request is already *Denied* by *{request_approver}* :x:'
+            bot_client.chat_delete(channel=user_id, ts=body["container"]["message_ts"])
+            bot_client.chat_postMessage(channel=user_id, text=result)
+
+        elif request_status["Item"]["requestStatus"]["S"] == 'Approved':
+            result += f'\nThis request is already *Approved* by *{request_approver}* :x:'
+            bot_client.chat_delete(channel=user_id, ts=body["container"]["message_ts"])
+            bot_client.chat_postMessage(channel=user_id, text=result)
+
+        else:
+            result += '\nThis request has *Expired* :x:'
+            bot_client.chat_delete(channel=user_id, ts=body["container"]["message_ts"])
+            bot_client.chat_postMessage(channel=user_id, text=result)
 
 
 if __name__ == "__main__":
