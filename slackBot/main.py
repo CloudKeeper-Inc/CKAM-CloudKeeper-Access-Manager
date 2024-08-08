@@ -211,6 +211,11 @@ def submitForm(ack, respond, body, logger):
             },
             'approver': {
                 'S': ''
+            },
+            'approveReqMap': {
+                'L': [
+
+                ]
             }
         }
     )
@@ -255,8 +260,49 @@ def postApproveRequest(request_id, user_name, permission, jit_time, reason, acce
     if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
         for item in response["Items"]:
             userID = item["slackUserId"]["S"]
-            bot_client.chat_postMessage(channel=userID, blocks=blocks)
+            message_data = bot_client.chat_postMessage(channel=userID, blocks=blocks)
 
+            if message_data["ok"]:
+                # Retrieve the existing item
+                response = dynamoClient.get_item(
+                    TableName=requestTable,
+                    Key={
+                        'requestId': {'S': request_id}
+                    }
+                )
+
+                # Get the existing approveReqMap list or initialize an empty list if not present
+                existing_approveReqMap = response.get('Item', {}).get('approveReqMap', {}).get('L', [])
+
+                # Extract the new key-value pair
+                channel_key = message_data["channel"]
+                timestamp_value = message_data["ts"]
+
+                # Create the new item to append
+                new_item = {
+                    'M': {
+                        'channel': {'S': channel_key},
+                        'ts': {'S': timestamp_value}
+                    }
+                }
+
+                # Append the new item to the existing list
+                updated_approveReqMap = existing_approveReqMap + [new_item]
+
+                # Update the item in DynamoDB with the new approveReqMap list
+                dynamoClient.update_item(
+                    TableName=requestTable,
+                    Key={
+                        'requestId': {'S': request_id}
+                    },
+                    UpdateExpression='SET #ARM = :new_map',
+                    ExpressionAttributeNames={
+                        '#ARM': 'approveReqMap'
+                    },
+                    ExpressionAttributeValues={
+                        ':new_map': {'L': updated_approveReqMap}
+                    }
+                )
 
 @app.action("approve")
 def handle_some_action(ack, body, logger):
@@ -337,9 +383,24 @@ def handle_some_action(ack, body, logger):
         )
 
         result += f'\nRequest *Approved* by *\'{user_name}\'* 👍'
-        bot_client.chat_delete(channel=user_id, ts=body["container"]["message_ts"])
-        bot_client.chat_postMessage(channel=user_id, text=result)
+        # bot_client.chat_delete(channel=user_id, ts=body["container"]["message_ts"])
+        adminMsgMap = dynamoClient.get_item(
+            TableName = requestTable,
+            Key = {
+                'requestId': {'S': request_id}
+            },
+            AttributesToGet=['approveReqMap']
+        )
 
+        adminMsgMap = adminMsgMap.get('Item', {}).get('approveReqMap', {}).get('L', [])
+
+        for item in adminMsgMap:
+            channel_key = item['M'].get('channel', {}).get('S', 'Unknown')
+            timestamp_value = item['M'].get('ts', {}).get('S', 'Unknown')
+            bot_client.chat_delete(channel=channel_key, ts=timestamp_value)
+            bot_client.chat_postMessage(channel=channel_key, text=result)
+
+        # bot_client.chat_postMessage(channel=user_id, text=result)
         #Notify requester
         requester_email = dynamoClient.get_item(
             TableName = requestTable,
@@ -453,8 +514,25 @@ def handle_some_action(ack, body, logger):
         )
 
         result += f'\nRequest *Denied* by *\'{user_name}\'* :thumbsdown:'
-        bot_client.chat_delete(channel=user_id, ts=body["container"]["message_ts"])
-        bot_client.chat_postMessage(channel=user_id, text=result)
+
+        adminMsgMap = dynamoClient.get_item(
+            TableName = requestTable,
+            Key = {
+                'requestId': {'S': request_id}
+            },
+            AttributesToGet=['approveReqMap']
+        )
+
+        adminMsgMap = adminMsgMap.get('Item', {}).get('approveReqMap', {}).get('L', [])
+
+        for item in adminMsgMap:
+            channel_key = item['M'].get('channel', {}).get('S', 'Unknown')
+            timestamp_value = item['M'].get('ts', {}).get('S', 'Unknown')
+            bot_client.chat_delete(channel=channel_key, ts=timestamp_value)
+            bot_client.chat_postMessage(channel=channel_key, text=result)
+
+        # bot_client.chat_delete(channel=user_id, ts=body["container"]["message_ts"])
+        # bot_client.chat_postMessage(channel=user_id, text=result)
         
         #Notify requester
         requester_email = dynamoClient.get_item(
