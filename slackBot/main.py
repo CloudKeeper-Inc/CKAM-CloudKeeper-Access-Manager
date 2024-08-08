@@ -383,7 +383,7 @@ def handle_some_action(ack, body, logger):
         )
 
         result += f'\nRequest *Approved* by *\'{user_name}\'* 👍'
-        # bot_client.chat_delete(channel=user_id, ts=body["container"]["message_ts"])
+        
         adminMsgMap = dynamoClient.get_item(
             TableName = requestTable,
             Key = {
@@ -400,7 +400,6 @@ def handle_some_action(ack, body, logger):
             bot_client.chat_delete(channel=channel_key, ts=timestamp_value)
             bot_client.chat_postMessage(channel=channel_key, text=result)
 
-        # bot_client.chat_postMessage(channel=user_id, text=result)
         #Notify requester
         requester_email = dynamoClient.get_item(
             TableName = requestTable,
@@ -530,9 +529,6 @@ def handle_some_action(ack, body, logger):
             timestamp_value = item['M'].get('ts', {}).get('S', 'Unknown')
             bot_client.chat_delete(channel=channel_key, ts=timestamp_value)
             bot_client.chat_postMessage(channel=channel_key, text=result)
-
-        # bot_client.chat_delete(channel=user_id, ts=body["container"]["message_ts"])
-        # bot_client.chat_postMessage(channel=user_id, text=result)
         
         #Notify requester
         requester_email = dynamoClient.get_item(
