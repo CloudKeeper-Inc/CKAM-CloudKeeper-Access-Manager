@@ -24,7 +24,7 @@ app = App(
 requestTable = os.getenv('REQUESTTABLENAME')
 approverTable = os.getenv('APPROVERTABLENAME')
 accessManagerTable = os.getenv('ACCESSMANAGERMETADATATABLE')
-dynamoClient = boto3.client('dynamodb')
+dynamoClient = boto3.client('dynamodb', region_name=os.getenv('DYNAMODBREGION'))
 
 
 @app.event("app_mention")
