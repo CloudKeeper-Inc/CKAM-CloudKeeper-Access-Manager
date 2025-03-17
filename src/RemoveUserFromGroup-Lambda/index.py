@@ -16,18 +16,20 @@ SECRETKEY = crossAcc['Credentials']['SecretAccessKey']
 SESSIONTOKEN = crossAcc['Credentials']['SessionToken']
 
 identityClient = boto3.client('identitystore', aws_access_key_id=ACCESSKEY, aws_secret_access_key=SECRETKEY, aws_session_token=SESSIONTOKEN)
+ssoAdminClient = boto3.client('sso-admin', aws_access_key_id=ACCESSKEY, aws_secret_access_key=SECRETKEY, aws_session_token=SESSIONTOKEN)
 
 
-
-def removeFromGroup(membershipId):
+def removeFromApplication(membershipId):
     try:
-        response = identityClient.delete_group_membership(
-            IdentityStoreId = identityStore,
-            MembershipId = membershipId
+        response = ssoAdminClient.delete_application_assignment(
+            ApplicationArn='string',
+            PrincipalId='string',
+            PrincipalType='USER'
         )
     except Exception as e:
         print('Not able to remove permission' + str(e))
 
 def lambda_handler(event, context):
-    membershipId = event['grantoutput']['Payload']['MembershipId']
-    removeFromGroup(membershipId)
+    print(event)
+    # membershipId = event['grantoutput']['Payload']['MembershipId']
+    # removeFromApplication(membershipId)

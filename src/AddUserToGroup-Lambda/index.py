@@ -18,8 +18,9 @@ SECRETKEY = crossAcc['Credentials']['SecretAccessKey']
 SESSIONTOKEN = crossAcc['Credentials']['SessionToken']
 
 identityClient = boto3.client('identitystore', aws_access_key_id=ACCESSKEY, aws_secret_access_key=SECRETKEY, aws_session_token=SESSIONTOKEN)
+ssoAdminClient = boto3.client('sso-admin', aws_access_key_id=ACCESSKEY, aws_secret_access_key=SECRETKEY, aws_session_token=SESSIONTOKEN)
 
-def getGroupId(permission):
+def getApplicationArn(permission):
     response = dynamoClient.get_item(
         TableName = metdataTable,
         Key = {
@@ -29,9 +30,9 @@ def getGroupId(permission):
         }
     )
 
-    groupId = response['Item']['GroupId']['S']
+    applicationArn = response['Item']['ApplicationArn']['S']
 
-    return groupId
+    return applicationArn
 
 def getUserId(requesterEmail):
     response = identityClient.list_users(
@@ -54,14 +55,12 @@ def getUserId(requesterEmail):
 
     return userId
 
-def assignPermission(requesterId, permission, groupId):
+def assignPermission(requesterId, permission, applicationArn):
     try:
-        response = identityClient.create_group_membership(
-            IdentityStoreId = identityStore,
-            GroupId = groupId,
-            MemberId = {
-                'UserId': requesterId
-            }
+        response = ssoAdminClient.create_application_assignment(
+            ApplicationArn=applicationArn,
+            PrincipalId=requesterId,
+            PrincipalType='USER'
         )
     except Exception as e:
         print(f"Can't assign user to {permission}" + str(e))
@@ -87,9 +86,9 @@ def lambda_handler(event, context):
     requestId = event['requestId']
     userEmail, permission = getRequestDetails(requestId)
 
-    groupId = getGroupId(permission)
+    applicationArn = getApplicationArn(permission)
     requesterId = getUserId(userEmail)
-    response = assignPermission(requesterId, permission, groupId)
+    response = assignPermission(requesterId, permission, applicationArn)
 
     return {
         'requestStatus': 'Approved'
