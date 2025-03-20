@@ -1,7 +1,7 @@
 import boto3
 import os
 
-metdataTable = os.getenv('METADATATABLE')
+metadataTable = os.getenv('METADATATABLE')
 identityStore = os.getenv('IDENTITYSTOREID')
 crossAccRole = os.getenv('CROSSACCROLE')
 requestTable = os.getenv('REQUESTTABLENAME')
@@ -22,7 +22,7 @@ ssoAdminClient = boto3.client('sso-admin', aws_access_key_id=ACCESSKEY, aws_secr
 
 def getApplicationArn(permission):
     response = dynamoClient.get_item(
-        TableName = metdataTable,
+        TableName = metadataTable,
         Key = {
             'DisplayName': {
                 'S': permission

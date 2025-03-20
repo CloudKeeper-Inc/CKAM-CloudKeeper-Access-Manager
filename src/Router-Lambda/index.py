@@ -64,25 +64,29 @@ def rejectedFlow(requestId, requestStatus):
         print("Error:" + str(e))
 
 def extractEvents(event):
-    event = event["Records"][0]["dynamodb"]["NewImage"]
-    ssnDuration = event["duration"]['N']
-    usrEmail = event["userEmail"]['S']
-    permission = event["permissionType"]['S']
-    usrName = event["userName"]['S']
-    requestStatus = event["requestStatus"]['S']
-    requestId = event["requestId"]['S']
-    
-    if requestStatus.lower() == "pending":
-        print('[INFO] Pending Flow Invoked')
-        pendingFlow(requestId)
-    elif requestStatus.lower() == "approved":
-        print('[INFO] Approved Flow Invoked')
-        approvedFlow(requestId, ssnDuration)
-    elif requestStatus.lower() in ["rejected", "cancelled"]:
-        print('[INFO] Rejection/Cancellation Flow Invoked')
-        rejectedFlow(requestId, requestStatus)
-    else:
+    if event["Records"][0]["eventName"] == 'REMOVE':
+        print('[INFO] A dynamoDB table item is deleted')
         pass
+    else:
+        event = event["Records"][0]["dynamodb"]["NewImage"]
+        ssnDuration = event["duration"]['N']
+        usrEmail = event["userEmail"]['S']
+        permission = event["permissionType"]['S']
+        usrName = event["userName"]['S']
+        requestStatus = event["requestStatus"]['S']
+        requestId = event["requestId"]['S']
+        
+        if requestStatus.lower() == "pending":
+            print('[INFO] Pending Flow Invoked')
+            pendingFlow(requestId)
+        elif requestStatus.lower() == "approved":
+            print('[INFO] Approved Flow Invoked')
+            approvedFlow(requestId, ssnDuration)
+        elif requestStatus.lower() in ["rejected", "cancelled"]:
+            print('[INFO] Rejection/Cancellation Flow Invoked')
+            rejectedFlow(requestId, requestStatus)
+        else:
+            pass
     
 def lambda_handler(event, context):
     extractEvents(event)
