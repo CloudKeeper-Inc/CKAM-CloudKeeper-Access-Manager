@@ -1,0 +1,6 @@
+Flask
+boto3
+python-dotenv
+flask-cors
+slack-sdk
+slack-bolt

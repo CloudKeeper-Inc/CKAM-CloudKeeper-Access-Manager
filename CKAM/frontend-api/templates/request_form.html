@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="content-card">
+    <h2>Request New Access</h2>
+    <p class="subtitle">Fill out the details below to request temporary or permanent access.</p>
+    
+    <!-- We've added an id="request-form" to the form tag -->
+    <form action="{{ url_for('submit_request') }}" method="POST" id="request-form">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="userEmail">Your Email</label>
+                <input type="email" id="userEmail" name="userEmail" value="{{ user_info.email if user_info else '' }}" required readonly>
+            </div>
+            <div class="form-group">
+                <label for="userName">Your Name</label>
+                <input type="text" id="userName" name="userName" value="{{ user_info.name if user_info else '' }}" required readonly>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="permissionType">Permission</label>
+            <select id="permissionType" name="permissionType" required>
+                <option value="" disabled selected>Select a permission level...</option>
+                {% for perm in permissions %}
+                    <option value="{{ perm }}">{{ perm }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Access Type</label>
+            <div class="radio-group">
+                <label class="radio-label">
+                    <input type="radio" id="jit" name="accessType" value="Just-in-time" checked onchange="toggleJitTime()">
+                    <span>Just-in-time</span>
+                </label>
+                <label class="radio-label">
+                    <input type="radio" id="always" name="accessType" value="Always" onchange="toggleJitTime()">
+                    <span>Always</span>
+                </label>
+            </div>
+        </div>
+        <div class="form-group" id="jitTimeContainer">
+            <label for="jitTimeHours">Time in Hours</label>
+            <input type="number" id="jitTimeHours" name="jitTimeHours" min="0.5" step="0.5" value="1" required>
+        </div>
+        <div class="form-group">
+            <label for="reason">Reason for Access</label>
+            <textarea id="reason" name="reason" rows="4" required placeholder="e.g., Need to debug production issue #123..."></textarea>
+        </div>
+
+        <!-- We've added an id="submit-button" to the button tag -->
+        <button type="submit" id="submit-button">
+            <i data-feather="send"></i>
+            <!-- The text is now in a span so we can easily change it -->
+            <span>Submit Request</span>
+        </button>
+    </form>
+</div>
+
+
+<!-- ==================== NEW JAVASCRIPT BLOCK ==================== -->
+<!-- This script handles disabling the button on form submission -->
+<script>
+    // Get the form and the button by their new IDs
+    const requestForm = document.getElementById('request-form');
+    const submitButton = document.getElementById('submit-button');
+    const buttonText = submitButton.querySelector('span');
+
+    // Add an event listener that waits for the form to be submitted
+    requestForm.addEventListener('submit', function() {
+        // As soon as the form is submitted (i.e., the button is clicked)...
+        
+        // 1. Disable the button to prevent more clicks
+        submitButton.disabled = true;
+
+        // 2. (Optional but recommended) Change the text to give the user visual feedback
+        if (buttonText) {
+            buttonText.textContent = 'Submitting...';
+        }
+    });
+
+
+    // This is your existing script to toggle the JIT time input
+    function toggleJitTime() {
+        const accessType = document.querySelector('input[name="accessType"]:checked').value;
+        const jitTimeContainer = document.getElementById('jitTimeContainer');
+        const jitTimeInput = document.getElementById('jitTimeHours');
+        if (accessType === 'Just-in-time') {
+            jitTimeContainer.style.display = 'block';
+            jitTimeInput.required = true;
+        } else {
+            jitTimeContainer.style.display = 'none';
+            jitTimeInput.required = false;
+        }
+    }
+    // Call the function on page load to set the correct initial state
+    window.onload = function() {
+        toggleJitTime();
+        feather.replace(); // Re-render icons on this page (for the button)
+    };
+</script>
+<!-- ================================================================= -->
+
+{% endblock %}
