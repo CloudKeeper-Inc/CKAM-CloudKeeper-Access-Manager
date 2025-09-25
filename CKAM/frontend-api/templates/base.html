@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('index') }}" class="logo-link">
+                    <img src="{{ url_for('static', filename='images/cloudkeeper-logo.png') }}" alt="CloudKeeper Logo" class="logo">
+                </a>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('request_access') }}" class="nav-link {% if request.endpoint == 'request_access' %}active{% endif %}">
+                    <i data-feather="plus-circle"></i>
+                    <span>Request Access</span>
+                </a>
+                
+                {% if is_admin %}
+                <a href="{{ url_for('admin_history') }}" class="nav-link {% if request.endpoint == 'admin_history' %}active{% endif %}">
+                    <i data-feather="shield"></i>
+                    <span>Admin History</span>
+                </a>
+                {% endif %}
+
+            </nav>
+            <div class="sidebar-footer">
+                <a href="{{ url_for('logout') }}" class="nav-link logout-link">
+                    <i data-feather="log-out"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- ===== MAIN CONTENT ===== -->
+        <div class="main-content">
+            <header class="main-header">
+                <div class="header-user">
+                    {% if user_info and user_info.name %}
+                        Welcome, {{ user_info.name.split()[0] }}!
+                    {% else %}
+                        Welcome, Guest!
+                    {% endif %}
+                </div>
+            </header>
+
+            <main class="content-area">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flashes">
+                            {% for category, message in messages %}
+                                <div class="flash flash-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+                
+                {% block content %}{% endblock %}
+            </main>
+
+            <!-- ==================== NEW FOOTER BLOCK ==================== -->
+            <footer class="main-footer-credit">
+                Made with ❤️ by Platform Engineering & Research And Development team.
+            </footer>
+            <!-- ========================================================== -->
+
+        </div>
+    </div>
+
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>

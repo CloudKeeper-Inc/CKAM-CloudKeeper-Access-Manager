@@ -1,0 +1,15 @@
+services:
+  localstack:
+    image: localstack/localstack:latest
+    ports:
+      - "4566:4566"
+      - "4510-4559:4510-4559"
+    environment:
+      - SERVICES=dynamodb,sfn,lambda,sts,iam,ses
+      - DEBUG=1
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      # (Optional) persist state between restarts:
+      # - PERSISTENCE=1
+    volumes:
+      - "./localstack-data:/var/lib/localstack"   # ← mount here, not /tmp
+      - "/var/run/docker.sock:/var/run/docker.sock"

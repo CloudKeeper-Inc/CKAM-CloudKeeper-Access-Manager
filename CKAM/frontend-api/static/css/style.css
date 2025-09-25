@@ -1,0 +1,317 @@
+/* === CloudKeeper Dashboard UI Redesign === */
+
+/* --- 1. Root Variables & Global Reset --- */
+:root {
+    --ck-blue: #377dff;
+    --ck-blue-light: #e0e9ff;
+    --ck-dark: #1b2539;
+    --ck-gray: #8A99B5;
+    --ck-light-gray: #f0f2f5;
+    --ck-white: #ffffff;
+    --ck-border: #e9ecef;
+    --ck-shadow: rgba(45, 55, 75, 0.1);
+    --font-family: 'Poppins', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    font-family: var(--font-family);
+    background-color: var(--ck-light-gray);
+    color: var(--ck-dark);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* --- 2. Main Dashboard Layout --- */
+.dashboard-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 260px;
+    background-color: var(--ck-dark);
+    color: var(--ck-white);
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    flex-shrink: 0;
+}
+
+.main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- 3. Sidebar Styling --- */
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 25px;
+    margin-bottom: 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: var(--ck-white);
+}
+
+.logo-link .logo {
+    height: 45px;
+    width: auto;
+    border-radius: 8px;
+}
+
+.logo-link h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.sidebar-nav {
+    flex-grow: 1;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    color: var(--ck-gray);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+}
+
+.nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--ck-white);
+}
+
+.nav-link.active {
+    background-color: var(--ck-blue);
+    color: var(--ck-white);
+    box-shadow: 0 4px 10px rgba(55, 125, 255, 0.3);
+}
+    
+.logout-link { color: var(--ck-gray); }
+.logout-link:hover { background-color: rgba(231, 76, 60, 0.1); color: #e74c3c; }
+
+/* --- 4. Main Content Area Styling --- */
+.main-header {
+    padding: 20px 40px;
+    background-color: var(--ck-white);
+    border-bottom: 1px solid var(--ck-border);
+    text-align: right;
+    font-weight: 500;
+}
+
+/* CORRECTED VERSION: The background property has been removed from this rule */
+.content-area {
+    padding: 40px;
+    overflow-y: auto;
+}
+    
+.content-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+    padding: 40px;
+    box-shadow: 0 8px 32px 0 var(--ck-shadow);
+    max-width: 800px;
+    margin: 0 auto;
+}
+    
+.content-card h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+.content-card .subtitle {
+    margin-bottom: 40px;
+    color: var(--ck-gray);
+}
+
+/* --- 5. Form Redesign --- */
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+.form-group {
+    flex: 1;
+    margin-bottom: 25px;
+}
+
+form label {
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: block;
+}
+
+form input, form select, form textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--ck-border);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: var(--font-family);
+    transition: all 0.2s ease;
+}
+    
+form input:focus, form select:focus, form textarea:focus {
+    outline: none;
+    border-color: var(--ck-blue);
+    box-shadow: 0 0 0 3px var(--ck-blue-light);
+}
+    
+input[readonly] { background-color: #f8f9fa; }
+textarea { resize: vertical; }
+
+.radio-group { display: flex; gap: 20px; }
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 15px;
+    border: 1px solid var(--ck-border);
+    border-radius: 8px;
+    cursor: pointer;
+}
+input[type="radio"]:checked + span { font-weight: 600; color: var(--ck-blue); }
+
+button[type="submit"] {
+    background-color: var(--ck-blue);
+    color: white;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.2s ease;
+}
+    
+button[type="submit"]:hover {
+    background-color: #2769d6;
+    box-shadow: 0 4px 15px rgba(55, 125, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+/* --- 6. Flash Messages --- */
+.flashes { max-width: 800px; margin: 0 auto 20px; }
+.flash { padding: 15px 20px; border-radius: 8px; margin-bottom: 10px; color: var(--white); font-weight: 500; }
+.flash-success { background-color: #2ecc71; }
+.flash-danger { background-color: #e74c3c; }
+.flash-info, .flash-warning { background-color: #f39c12; }
+
+
+/* --- 7. Login Page Styles (NEW SECTION) --- */
+/* --- 7. Login Page Styles --- */
+
+/* This container centers the card on the full page */
+.login-page-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    background-color: var(--ck-light-gray);
+}
+
+/* This is the logo that appears inside the login card */
+.login-logo {
+    height: 50px;
+    width: auto;
+    margin-bottom: 30px;
+}
+
+/* We no longer need the .login-wrapper class, as it's been replaced */
+/* .login-wrapper { ... } can be deleted if it exists */
+
+.login-card {
+    background: var(--ck-white);
+    border-radius: 16px;
+    padding: 50px 60px;
+    box-shadow: 0 10px 30px rgba(45, 55, 75, 0.1);
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+    border: 1px solid var(--ck-border);
+}
+
+.login-card h1 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: var(--ck-dark);
+}
+
+.login-card .subtitle {
+    color: var(--ck-gray);
+    margin-bottom: 50px;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.google-signin-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    background-color: #ffffff;
+    border: 1px solid var(--ck-border);
+    font-size: 1rem;
+    font-weight: 500;
+    color: #3c4043;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.google-signin-button:hover {
+    background-color: #f8f9fa;
+    border-color: #d2d6da;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+}
+
+.google-signin-button svg {
+    height: 20px;
+    width: 20px;
+}
+
+.flashes-login {
+    margin-top: 30px;
+}
+/* --- 8. Main Footer Credit (NEW SECTION) --- */
+
+.main-footer-credit {
+    padding: 20px 40px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--ck-gray);
+    background-color: var(--ck-white);
+    border-top: 1px solid var(--ck-border);
+    margin-top: auto; /* This is the key to pushing it to the bottom */
+}
